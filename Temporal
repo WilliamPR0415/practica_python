@@ -1,0 +1,516 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 5,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/WilliamPR0415/practica_python/blob/main/Temporal\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "uyfPhXoTYZHs"
+      },
+      "source": [
+        "# Clase espejo: IA con Python\n",
+        "Universidad Nacional de Colombia y Universidad Colegio Mayor de Cundinamarca · 9 de noviembre de 2026\n",
+        "\n",
+        "Hoy vamos a conectar un programa de Python con un modelo de inteligencia artificial y, en grupos, van a hacer su propia aplicación.\n",
+        "\n",
+        "## Antes de empezar\n",
+        "\n",
+        "1. Haz tu propia copia: menú **Archivo → Guardar una copia en Drive**. Trabaja siempre en esa copia, no en esta.\n",
+        "2. Revisa que tu llave esté guardada: en la barra de la izquierda, el ícono de la llave. Debe haber un secreto llamado `GROQ_API_KEY` con el interruptor de **Acceso al notebook** activado. Si no lo tienes, mira el notebook de prueba que les enviamos.\n",
+        "3. Para ejecutar una celda, haz clic en el botón ▶ que aparece a su izquierda (o presiona **Shift + Enter**). Ejecútalas en orden, de arriba hacia abajo."
+      ],
+      "id": "uyfPhXoTYZHs"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "EHXk86czYZHt"
+      },
+      "source": [
+        "## Paso 1: preparar el entorno\n",
+        "\n",
+        "Ejecuta las dos celdas siguientes. No tienes que cambiar nada en ellas.\n",
+        "\n",
+        "La primera instala la librería que usamos para hablar con la IA (se demora unos segundos). La segunda crea la función `preguntar_ia`, que es la que vamos a usar todo el tiempo. Cuando termine, debe aparecer el mensaje *Todo listo*."
+      ],
+      "id": "EHXk86czYZHt"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "n4UO4n0hYZHt"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "!pip install -q openai"
+      ],
+      "id": "n4UO4n0hYZHt"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "GjjU_5nPYZHt"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "from openai import OpenAI\n",
+        "from google.colab import userdata\n",
+        "\n",
+        "client = OpenAI(api_key=userdata.get(\"GROQ_API_KEY\"),\n",
+        "                base_url=\"https://api.groq.com/openai/v1\")\n",
+        "MODELO = \"openai/gpt-oss-120b\"\n",
+        "\n",
+        "def preguntar_ia(mensaje, personalidad=\"Eres un asistente amable. Respondes en español y de forma breve.\"):\n",
+        "    # Le manda el mensaje a la IA y devuelve la respuesta como texto\n",
+        "    try:\n",
+        "        r = client.chat.completions.create(\n",
+        "            model=MODELO,\n",
+        "            messages=[{\"role\": \"system\", \"content\": personalidad},\n",
+        "                      {\"role\": \"user\", \"content\": mensaje}])\n",
+        "        return r.choices[0].message.content\n",
+        "    except Exception as e:\n",
+        "        if \"429\" in str(e):\n",
+        "            return \"Se alcanzó el límite de uso. Espera un minuto y vuelve a intentar.\"\n",
+        "        return \"Error: \" + str(e)\n",
+        "\n",
+        "print(\"Todo listo, ya puedes usar preguntar_ia()\")"
+      ],
+      "id": "GjjU_5nPYZHt"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Ny4j1yRpYZHu"
+      },
+      "source": [
+        "## ¿Qué es una API?\n",
+        "\n",
+        "Piensa en un restaurante. Tú haces el pedido, el mesero lo lleva a la cocina y te trae el plato. Aquí tu programa hace el pedido, la API es el mesero y la cocina es el modelo de IA. No necesitas saber cómo funciona la cocina, solo saber pedir bien.\n",
+        "\n",
+        "La llave (`GROQ_API_KEY`) es como tu carné del restaurante: dice quién está pidiendo. Por eso no se comparte.\n",
+        "\n",
+        "## Paso 2: hacerle una pregunta a la IA\n",
+        "\n",
+        "`preguntar_ia` funciona como cualquier función que ya conocen: recibe un texto y devuelve otro texto.\n",
+        "\n",
+        "Ejecuta la celda. Después cambia la pregunta por otra y vuelve a ejecutarla."
+      ],
+      "id": "Ny4j1yRpYZHu"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "GKT_4xGMYZHu"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "respuesta = preguntar_ia(\"¿Qué es un ciclo while? Explícalo en dos frases.\")\n",
+        "print(respuesta)"
+      ],
+      "id": "GKT_4xGMYZHu"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "vh6WCEP-YZHu"
+      },
+      "source": [
+        "## Paso 3: un chatbot con `while`\n",
+        "\n",
+        "Con un `while`, un `input` y un `if` ya tenemos un chatbot.\n",
+        "\n",
+        "Ejecuta la celda. Abajo aparece un cuadro para escribir: escribe algo y presiona **Enter**. Cuando quieras terminar, escribe `salir`."
+      ],
+      "id": "vh6WCEP-YZHu"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "JEUYsYyMYZHu"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "while True:\n",
+        "    texto = input(\"Tú: \")\n",
+        "    if texto.lower() == \"salir\":\n",
+        "        print(\"Chao!\")\n",
+        "        break\n",
+        "    print(\"IA:\", preguntar_ia(texto))\n",
+        "    print()"
+      ],
+      "id": "JEUYsYyMYZHu"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Ue0uYJiPYZHu"
+      },
+      "source": [
+        "## Paso 4: cambiarle la personalidad\n",
+        "\n",
+        "La función tiene un segundo parámetro: le dice a la IA cómo comportarse. Cambiando solo esa frase, tienen una aplicación distinta.\n",
+        "\n",
+        "Ejecuta la celda y luego prueba con otra personalidad (un profe muy estricto, un narrador de fútbol, un abuelito...)."
+      ],
+      "id": "Ue0uYJiPYZHu"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "3CAYTFSYYZHu"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "pirata = \"Eres un pirata gracioso. Respondes en español, en máximo tres frases, con expresiones de pirata.\"\n",
+        "print(preguntar_ia(\"¿Qué me recomiendas para estudiar para un parcial?\", pirata))"
+      ],
+      "id": "3CAYTFSYYZHu"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Q6AKXmHbYZHv"
+      },
+      "source": [
+        "**Algo importante:** la IA no recuerda lo que le dijeron antes. Cada vez que llaman a `preguntar_ia` es una conversación nueva. Si su aplicación necesita recordar algo (un puntaje, el nombre del usuario, las respuestas), lo guardan ustedes en variables o listas, como siempre."
+      ],
+      "id": "Q6AKXmHbYZHv"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "yJMjoOroYZHv"
+      },
+      "source": [
+        "## Paso 5: IA y datos\n",
+        "\n",
+        "Ahora vamos a juntar la IA con análisis de datos. La idea es:\n",
+        "\n",
+        "1. Pedirle a la IA que invente unos datos (como si fueran de un negocio real).\n",
+        "2. Analizarlos con **pandas**, la librería de Python para trabajar con tablas.\n",
+        "3. Pedirle a la IA que nos ayude a interpretar lo que encontramos.\n",
+        "\n",
+        "Ejecuta la celda. Crea la función `generar_datos` y con ella pide 30 ventas inventadas de una tienda de barrio. Al final se muestran las primeras filas de la tabla."
+      ],
+      "id": "yJMjoOroYZHv"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "pYnHY0NcYZHv"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "import pandas as pd\n",
+        "import io\n",
+        "\n",
+        "def generar_datos(descripcion, filas=20):\n",
+        "    # Le pide a la IA un CSV con datos inventados y lo convierte en una tabla de pandas\n",
+        "    pedido = (\"Genera un archivo CSV con \" + str(filas) + \" filas de datos ficticios sobre: \" + descripcion + \". \"\n",
+        "              \"La primera línea debe tener los nombres de las columnas, separados por comas. \"\n",
+        "              \"No uses comas dentro de los valores. \"\n",
+        "              \"Responde SOLO con el CSV, sin explicaciones y sin ```.\")\n",
+        "    texto = preguntar_ia(pedido)\n",
+        "    texto = texto.replace(\"```csv\", \"\").replace(\"```\", \"\").strip()\n",
+        "    return pd.read_csv(io.StringIO(texto))\n",
+        "\n",
+        "ventas = generar_datos(\"ventas de una tienda de barrio en Bogotá, con las columnas producto, categoria, \"\n",
+        "                       \"cantidad, precio_unitario (en pesos, número entero) y dia_semana\", 30)\n",
+        "ventas.head()"
+      ],
+      "id": "pYnHY0NcYZHv"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "LXrfJqzJYZHv"
+      },
+      "source": [
+        "Con pandas podemos calcular cosas sobre la tabla. Esta celda crea una columna con el total de cada venta, suma las ventas por categoría y hace una gráfica por día de la semana.\n",
+        "\n",
+        "Si sale un error de que una columna no existe, es porque la IA les puso otros nombres. Revísalos con `ventas.columns` y ajusta los nombres en la celda (o vuelve a generar los datos)."
+      ],
+      "id": "LXrfJqzJYZHv"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "vmwoo5PpYZHv"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "ventas[\"total\"] = ventas[\"cantidad\"] * ventas[\"precio_unitario\"]\n",
+        "\n",
+        "print(\"Ventas totales: $\", ventas[\"total\"].sum())\n",
+        "print()\n",
+        "\n",
+        "por_categoria = ventas.groupby(\"categoria\")[\"total\"].sum().sort_values(ascending=False)\n",
+        "print(por_categoria)\n",
+        "\n",
+        "ventas.groupby(\"dia_semana\")[\"total\"].sum().plot(kind=\"bar\", title=\"Ventas por día de la semana\");"
+      ],
+      "id": "vmwoo5PpYZHv"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "N1tWfTP1YZHv"
+      },
+      "source": [
+        "Por último, le pasamos a la IA el resumen que calculamos y le pedimos que lo interprete. Fíjense que **los cálculos los hace pandas** y la IA solo ayuda a explicarlos: así es más confiable que pedirle a la IA que haga las cuentas."
+      ],
+      "id": "N1tWfTP1YZHv"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "nCBuc9Y4YZHw"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "analista = \"Eres un analista de datos. Respondes en español, de forma clara y corta.\"\n",
+        "pregunta = (\"Estas son las ventas totales por categoría de una tienda de barrio:\\n\" + por_categoria.to_string() +\n",
+        "            \"\\n\\nDa tres conclusiones cortas y una recomendación para el dueño de la tienda.\")\n",
+        "print(preguntar_ia(pregunta, analista))"
+      ],
+      "id": "nCBuc9Y4YZHw"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "BVmf02OqYZHw"
+      },
+      "source": [
+        "Si quieren guardar los datos para usarlos después, pueden descargarlos como archivo:"
+      ],
+      "id": "BVmf02OqYZHw"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "5HTKASfbYZHw"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "ventas.to_csv(\"ventas.csv\", index=False)\n",
+        "print(\"Archivo guardado. Lo encuentras en el ícono de la carpeta, en la barra de la izquierda.\")"
+      ],
+      "id": "5HTKASfbYZHw"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "OkLRB5sjYZHw"
+      },
+      "source": [
+        "---\n",
+        "\n",
+        "# El reto\n",
+        "\n",
+        "En grupo, hagan una aplicación con IA que sea útil o divertida. Tienen **45 minutos**. Al final, cada grupo la muestra funcionando en 2 o 3 minutos.\n",
+        "\n",
+        "Algunas ideas, por si no se les ocurre nada:\n",
+        "\n",
+        "- Un tutor de Python que da pistas pero no la respuesta.\n",
+        "- Adivina el personaje: la IA piensa en alguien y ustedes le hacen preguntas.\n",
+        "- Un entrevistador para practicar entrevistas de trabajo.\n",
+        "- Un analista de datos: generen o carguen unos datos, calculen algunas cosas con pandas y que la IA explique los resultados.\n",
+        "- Un generador de datos de prueba para un negocio inventado, con gráficas.\n",
+        "- Un asistente al que se le hacen preguntas sobre una tabla de datos.\n",
+        "- Un asistente de recetas con lo que haya en la nevera.\n",
+        "\n",
+        "Vayan por niveles. Empiecen por el 1 y, si les sobra tiempo, suban:\n",
+        "\n",
+        "- **Nivel 1:** inventen una personalidad y úsenla en el chatbot.\n",
+        "- **Nivel 2:** agreguen un menú con varias opciones usando `while` e `if`.\n",
+        "- **Nivel 3:** combinen la IA con su propia lógica: un puntaje, un contador, listas, validaciones, sus propias funciones o un análisis con pandas.\n",
+        "\n",
+        "Vamos a tener en cuenta: que sea creativa, que funcione en vivo y cuánto le cambiaron al código base.\n",
+        "\n",
+        "## Nivel 1\n",
+        "\n",
+        "Cambien el texto de `mi_personalidad` y ejecuten la celda. Para terminar, escriban `salir`."
+      ],
+      "id": "OkLRB5sjYZHw"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "rIvfvVtgYZHw"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "mi_personalidad = \"Escribe aquí cómo debe comportarse la IA. Pídele que responda en español y en pocas frases.\"\n",
+        "\n",
+        "while True:\n",
+        "    texto = input(\"Tú: \")\n",
+        "    if texto.lower() == \"salir\":\n",
+        "        break\n",
+        "    print(\"IA:\", preguntar_ia(texto, mi_personalidad))\n",
+        "    print()"
+      ],
+      "id": "rIvfvVtgYZHw"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "1o3OWtL9YZHw"
+      },
+      "source": [
+        "## Nivel 2\n",
+        "\n",
+        "Aquí hay un menú a medio hacer. La opción 1 ya funciona; completen la 2 y la 3 donde dice `pass` (pueden borrar el `pass` y escribir su código). Para salir del menú, escriban `0`."
+      ],
+      "id": "1o3OWtL9YZHw"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "drX8ZUwWYZHw"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "while True:\n",
+        "    print(\"===== MI APP =====\")\n",
+        "    print(\"1. Explicar un tema\")\n",
+        "    print(\"2. Opción dos\")\n",
+        "    print(\"3. Opción tres\")\n",
+        "    print(\"0. Salir\")\n",
+        "    opcion = input(\"Elige una opción: \")\n",
+        "\n",
+        "    if opcion == \"1\":\n",
+        "        tema = input(\"¿Qué tema? \")\n",
+        "        print(preguntar_ia(\"Explica de forma sencilla: \" + tema))\n",
+        "    elif opcion == \"2\":\n",
+        "        pass  # completen aquí\n",
+        "    elif opcion == \"3\":\n",
+        "        pass  # completen aquí\n",
+        "    elif opcion == \"0\":\n",
+        "        print(\"Hasta luego!\")\n",
+        "        break\n",
+        "    else:\n",
+        "        print(\"Esa opción no existe\")\n",
+        "    print()"
+      ],
+      "id": "drX8ZUwWYZHw"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "-Pg9bUhuYZHw"
+      },
+      "source": [
+        "## Nivel 3: un ejemplo\n",
+        "\n",
+        "Este es un quiz. La IA inventa las preguntas y revisa las respuestas, pero el puntaje lo lleva el programa con una variable. Úsenlo como idea o modifíquenlo.\n",
+        "\n",
+        "Al ejecutarlo, escriban un tema (por ejemplo *fútbol* o *historia de Colombia*) y respondan las 3 preguntas."
+      ],
+      "id": "-Pg9bUhuYZHw"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "fgHKXcaHYZHw"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "def quiz(tema, num_preguntas=3):\n",
+        "    puntaje = 0\n",
+        "    for i in range(1, num_preguntas + 1):\n",
+        "        pregunta = preguntar_ia(\"Escribe UNA pregunta corta y fácil sobre \" + tema + \". Solo la pregunta, sin la respuesta.\")\n",
+        "        print(\"\\nPregunta\", i, \":\", pregunta)\n",
+        "        resp = input(\"Tu respuesta: \")\n",
+        "        veredicto = preguntar_ia(\"Pregunta: \" + pregunta + \"\\nRespuesta: \" + resp +\n",
+        "                                 \"\\nSi la respuesta es correcta, empieza con la palabra CORRECTO. \"\n",
+        "                                 \"Si no, empieza con INCORRECTO. Luego explica en una frase.\")\n",
+        "        print(veredicto)\n",
+        "        if veredicto.strip().upper().startswith(\"CORRECTO\"):\n",
+        "            puntaje += 1\n",
+        "    print(\"\\nPuntaje final:\", puntaje, \"de\", num_preguntas)\n",
+        "\n",
+        "tema = input(\"¿De qué tema quieres el quiz? \")\n",
+        "quiz(tema)"
+      ],
+      "id": "fgHKXcaHYZHw"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "d_LlMs9hYZHw"
+      },
+      "source": [
+        "## Su aplicación\n",
+        "\n",
+        "Escriban aquí su aplicación. Si necesitan más espacio, agreguen celdas con el botón **+ Código**."
+      ],
+      "id": "d_LlMs9hYZHw"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "9VXdtmCkYZHx"
+      },
+      "execution_count": null,
+      "outputs": [],
+      "source": [
+        "# Escriban aquí su aplicación"
+      ],
+      "id": "9VXdtmCkYZHx"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "D-lmlL-9YZHx"
+      },
+      "source": [
+        "---\n",
+        "\n",
+        "### Si algo no funciona\n",
+        "\n",
+        "- **Sale un error de la llave:** revisen que el secreto se llame exactamente `GROQ_API_KEY` y que tenga activado el acceso al notebook.\n",
+        "- **Sale `NameError: preguntar_ia`:** no ejecutaron la celda del Paso 1. Ejecútenla primero.\n",
+        "- **Dice que se alcanzó el límite de uso:** esperen un minuto y vuelvan a intentar.\n",
+        "- **Una celda se queda \"pensando\" y no deja escribir:** deténganla con el botón ■ y vuelvan a ejecutarla.\n",
+        "\n",
+        "Y por favor no le manden a la IA datos personales (cédulas, teléfonos, direcciones). Además, la IA se puede equivocar: revisen lo que responde."
+      ],
+      "id": "D-lmlL-9YZHx"
+    }
+  ]
+}
